@@ -1,0 +1,45 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_contenidor
+    restart: unless-stopped
+    env_file: [.env]
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+
+  backend:
+    build: ./backend
+    container_name: backend_contenidor
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - 8000:8000
+    env_file: [.env]
+
+  frontend:
+    build: ./frontend
+    container_name: frontend_contenidor
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - 8080:80
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: adminMySQL_contenidor
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    env_file: [.env]
+    environment:
+      PMA_HOST: mysql_contenidor
+      PMA_USER: ${DB_USER}
+      PMA_PASSWORD: ${DB_PASSWORD}
+
+    ports:
+      - 8001:80
